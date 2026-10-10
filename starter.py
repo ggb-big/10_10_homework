@@ -3,7 +3,8 @@
 运行方式：python starter.py
 依赖库：numpy、matplotlib
 """
-
+import matplotlib
+matplotlib.use('TkAgg')
 import numpy as np
 
 
@@ -47,7 +48,10 @@ def build_grayscale(flat_pixels, height, width):
     # TODO A：将序列转换为数组，并重塑其形状。
     # 请删除下面的 raise NotImplementedError(...)，并在此处编写你的实现。
     # 请使用 return 返回函数要求的结果。
-    raise NotImplementedError("任务 A：请完成 build_grayscale()。")
+def build_grayscale(pixels,height,width):
+    arr = np.array(pixels, dtype=np.uint8)
+    img = arr.reshape(height, width)
+    return img
 
 
 def edit_pixel(gray, row, col, value):
@@ -77,7 +81,10 @@ def edit_pixel(gray, row, col, value):
     # TODO B：先复制数组，再通过二维索引修改指定像素的值。
     # 请删除下面的 raise NotImplementedError(...)，并在此处编写你的实现。
     # 请使用 return 返回函数要求的结果。
-    raise NotImplementedError("任务 B：请完成 edit_pixel()。")
+def edit_pixel(gray, row, col, value):
+    new_img = gray.copy()
+    new_img[row, col] = value
+    return new_img
 
 
 def grayscale_to_rgb(gray):
@@ -108,7 +115,10 @@ def grayscale_to_rgb(gray):
     # TODO C：将三份灰度值沿最后一个轴组合，构建三个颜色通道。
     # 请删除下面的 raise NotImplementedError(...)，并在此处编写你的实现。
     # 请使用 return 返回函数要求的结果。
-    raise NotImplementedError("任务 C：请完成 grayscale_to_rgb()。")
+def grayscale_to_rgb(gray_image):
+    # 二维灰度图 → 三维RGB数组 (H,W,3)，三个通道数值一样
+    rgb_img = np.stack([gray_image, gray_image, gray_image], axis=-1)
+    return rgb_img
 
 
 def adjust_brightness(image, offset):
@@ -131,7 +141,12 @@ def adjust_brightness(image, offset):
     # TODO D：先转换为有符号整数，再相加；限制数值范围后转换回原类型。
     # 请删除下面的 raise NotImplementedError(...)，并在此处编写你的实现。
     # 请使用 return 返回函数要求的结果。
-    raise NotImplementedError("任务 D：请完成 adjust_brightness()。")
+def adjust_brightness(image, delta):
+    # 调整亮度，数值限制在0~255
+    temp = image.astype(np.int16) + delta
+    temp = np.clip(temp, 0, 255)
+    result = temp.astype(np.uint8)
+    return result
 
 
 def check_functions():
@@ -139,7 +154,7 @@ def check_functions():
 
     请保留此检查代码。通过表示满足下列测试用例的要求。
     """
-    def check_array(result, expected):
+def check_array(result, expected):
         if not isinstance(result, np.ndarray):
             raise AssertionError("应返回 NumPy 数组，请检查是否遗漏 return。")
         if result.shape != expected.shape:
@@ -152,13 +167,13 @@ def check_functions():
                 f"\n    实际：{result.tolist()}"
             )
 
-    def check_original(source, before, result):
+def check_original(source, before, result):
         if not np.array_equal(source, before):
             raise AssertionError("原始输入被修改，应返回新的数组。")
         if np.shares_memory(source, result):
             raise AssertionError("输出与输入共享存储空间，应返回独立的数组。")
 
-    def test_build():
+def test_build():
         for height, width in ((2, 3), (3, 2), (1, 6)):
             for as_array in (False, True):
                 source = [0, 50, 100, 150, 200, 255]
@@ -171,7 +186,7 @@ def check_functions():
                 if not np.array_equal(source, before):
                     raise AssertionError("构建图像不应改变输入序列。")
 
-    def test_edit():
+def test_edit():
         for row, col, value in ((0, 1, 255), (1, 2, 0), (1, 0, 75)):
             source = np.array([[0, 50, 100], [150, 200, 255]], dtype=np.uint8)
             before = source.copy()
@@ -181,7 +196,7 @@ def check_functions():
             check_array(result, expected)
             check_original(source, before, result)
 
-    def test_rgb():
+def test_rgb():
         for values in ([[0, 128], [200, 255]], [[10, 70, 240]]):
             source = np.array(values, dtype=np.uint8)
             before = source.copy()
@@ -192,7 +207,7 @@ def check_functions():
             check_array(result, expected)
             check_original(source, before, result)
 
-    def test_brightness():
+def test_brightness():
         inputs = (
             np.array([[0, 20, 240], [100, 200, 255]], dtype=np.uint8),
             np.array([[[240, 20, 0], [100, 200, 255]]], dtype=np.uint8),
@@ -209,28 +224,32 @@ def check_functions():
                 check_array(result, expected)
                 check_original(source, before, result)
 
+def check_all():  # ← 这个函数开头
     tests = [
-        ("任务 A：build_grayscale", test_build),
-        ("任务 B：edit_pixel", test_edit),
-        ("任务 C：grayscale_to_rgb", test_rgb),
-        ("任务 D：adjust_brightness", test_brightness),
+        ("任务 A: build_grayscale", test_build),
+        ("任务 B: edit_pixel", test_edit),
+        ("任务 C: grayscale_to_rgb", test_rgb),
+        ("任务 D: adjust_brightness", test_brightness),
     ]
     passed = 0
-    print("\n========== 函数检查结果 ==========")
+    print("\n======= 函数检查结果 =======")
     for name, test in tests:
         try:
             test()
         except NotImplementedError:
-            print(f"[未完成] {name}：请替换占位代码。")
+            print(f"[未完成] {name}: 请替换占位代码。")
         except AssertionError as error:
-            print(f"[未通过] {name}：{error}")
+            print(f"[未通过] {name}: {error}")
         except Exception as error:
-            print(f"[运行出错] {name}：{type(error).__name__}: {error}")
+            print(f"[运行出错] {name}: {type(error).__name__}: {error}")
         else:
             passed += 1
             print(f"[通过] {name}")
-    print(f"检查汇总：{passed}/4 个函数通过。")
+
+    # 下面两行在 check_all 函数内部，和for同一层级：4个空格缩进
+    print(f"检查汇总： {passed}/4 个函数通过。")
     return passed == len(tests)
+# ↓函数结束
 
 
 def show_image(ax, image, title):
@@ -322,6 +341,7 @@ def main():
 
 
 if __name__ == "__main__":
+    check_all()
     try:
         main()
     except NotImplementedError as error:
